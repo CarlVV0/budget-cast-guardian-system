@@ -14,7 +14,6 @@ const Dashboard = () => {
       style: "currency",
       currency: "USD",
     }).format(amount);
-
   };
   
   // Calculate stats
@@ -39,7 +38,7 @@ const Dashboard = () => {
     };
   }, [userExpenses]);
   
-  // Prepare chart data
+  // Prepare chart data - fix the typo here, changing '.m' to '.map'
   const chartData = useMemo(() => {
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
@@ -48,7 +47,7 @@ const Dashboard = () => {
       return date;
     }).reverse();
     
-    return last7Days.m (date => {
+    return last7Days.map(date => {
       const dateStr = date.toISOString().split("T")[0];
       const dayExpenses = userExpenses.filter(expense => expense.date.startsWith(dateStr));
       const total = dayExpenses.reduce((sum, expense) => sum + expense.amount, 0);
