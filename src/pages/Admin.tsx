@@ -9,14 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, FileEdit, Check, Eye } from "lucide-react";
+import { Trash2, FileEdit, Check, Eye, UserX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const Admin = () => {
-  const { currentUser, users, adminChangeUserPassword, adminResetUserPassword } = useAuth();
+  const { currentUser, users, adminChangeUserPassword, adminResetUserPassword, approveUser, rejectUser, deleteUser } = useAuth();
   const { getAllExpenses, deleteExpense, getPendingExpenses, approveExpense, rejectExpense } = useExpenses();
   const { notifications, markAsRead, clearNotification, addNotification } = useNotifications();
   const { toast } = useToast();
@@ -26,6 +27,8 @@ const Admin = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [deleteUserDialogOpen, setDeleteUserDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   
   if (!currentUser || currentUser.role !== "admin") {
     return <Navigate to="/dashboard" replace />;
@@ -105,6 +108,31 @@ const Admin = () => {
       title: "User Rejected",
       description: `User ${email} has been rejected.`,
     });
+  };
+
+  const handleDeleteUserClick = (user: User) => {
+    setUserToDelete(user);
+    setDeleteUserDialogOpen(true);
+  };
+
+  const handleDeleteUserConfirm = () => {
+    if (userToDelete) {
+      try {
+        deleteUser(userToDelete.id);
+        toast({
+          title: "User Deleted",
+          description: `User ${userToDelete.email} has been deleted from the system.`,
+        });
+        setDeleteUserDialogOpen(false);
+        setUserToDelete(null);
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to delete user",
+        });
+      }
+    }
   };
 
   const handlePasswordChange = async () => {
@@ -566,6 +594,17 @@ const Admin = () => {
                             >
                               Reset Password
                             </Button>
+                            {user.id !== "admin" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 border-red-600 hover:bg-red-50"
+                                onClick={() => handleDeleteUserClick(user)}
+                              >
+                                <UserX className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -631,6 +670,26 @@ const Admin = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <AlertDialog open={deleteUserDialogOpen} onOpenChange={setDeleteUserDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete user {userToDelete?.fullName} ({userToDelete?.email})? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteUserDialogOpen(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteUserConfirm} 
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 export interface User {
@@ -19,6 +20,7 @@ interface AuthContextType {
   isLoading: boolean;
   approveUser: (userId: string) => void;
   rejectUser: (userId: string) => void;
+  deleteUser: (userId: string) => void;
   users: User[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
   updateProfile: (data: { fullName: string, idNumber?: string }) => void;
@@ -155,6 +157,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
   
+  // Add the deleteUser function
+  const deleteUser = (userId: string) => {
+    // Don't allow deleting the current user or the admin
+    if (currentUser?.id === userId || userId === "admin") {
+      throw new Error("Cannot delete this user");
+    }
+    
+    setUsers(prev => 
+      prev.filter(u => u.id !== userId)
+    );
+  };
+  
   const updateProfile = (data: { fullName: string, idNumber?: string }) => {
     if (!currentUser) return;
     
@@ -242,6 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading,
     approveUser,
     rejectUser,
+    deleteUser,
     users,
     setUsers,
     updateProfile,
