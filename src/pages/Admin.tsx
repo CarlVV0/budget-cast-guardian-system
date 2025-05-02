@@ -82,8 +82,7 @@ const Admin = () => {
     setDeleteDialogOpen(true);
   };
 
-  const pendingUsers = useAuth().users.filter(u => u.status === "pending" && u.role !== "admin");
-  const { approveUser, rejectUser } = useAuth();
+  const pendingUsers = users.filter(u => u.status === "pending" && u.role !== "admin");
 
   const handleApproveUser = (userId: string, email: string, fullName: string) => {
     approveUser(userId);
@@ -97,6 +96,7 @@ const Admin = () => {
       description: `User ${email} has been approved.`,
     });
   };
+  
   const handleRejectUser = (userId: string, email: string, fullName: string) => {
     rejectUser(userId);
     addNotification({
